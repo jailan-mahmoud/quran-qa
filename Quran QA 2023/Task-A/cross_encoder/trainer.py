@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from transformers import HfArgumentParser
 
 sys.path.append(os.getcwd())  # for relative imports
+sys.path.append(os.getcwd() + 'kaggle/working/forked/quran-qa/Quran QA 2023/Task-A')
 print(os.getcwd())
 
 from configs.data_training_args import DataArguments
