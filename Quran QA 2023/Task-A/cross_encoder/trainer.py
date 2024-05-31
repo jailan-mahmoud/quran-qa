@@ -28,6 +28,7 @@ prepare_my_output_dirs(training_args)
 doc_df = read_docs_file(data_args.doc_file)
 
 if training_args.do_train:
+    print('Preparing TRAIN data ...')
     train_qrel_df = read_qrels_file(data_args.train_qrel_file, )
     train_query_df = read_query_file(data_args.train_query_file, )
     if training_args.save_last_checkpoint_to_drive:
@@ -38,14 +39,15 @@ if training_args.do_train:
     training_triplets = make_training_triplets(train_qrel_df, train_query_df, doc_df, samples_per_query=samples_per_query)
 
 if training_args.do_eval:
+    print('Preparing DEV data ...')
     dev_qrel_df = read_qrels_file(data_args.validation_qrel_file, )
     dev_query_df = read_query_file(data_args.validation_query_file, )
     dev_triplets = make_dev_triplets(dev_qrel_df, dev_query_df, doc_df)
     dev_infer_data = make_inference_data(dev_query_df, doc_df)
 
-    bm25_run = read_run_file("data/bm25_base.tsv")
-    bm25_run = pd.merge(bm25_run, dev_query_df, on="qid", how="inner")
-    bm25_run = pd.merge(bm25_run, doc_df, on="docid", how="inner")
+    # bm25_run = read_run_file("data/bm25_base.tsv")
+    # bm25_run = pd.merge(bm25_run, dev_query_df, on="qid", how="inner")
+    # bm25_run = pd.merge(bm25_run, doc_df, on="docid", how="inner")
 
     if data_args.max_eval_samples is not None:
         dev_triplets = random.choices(dev_triplets, k=data_args.max_eval_samples)
@@ -54,6 +56,7 @@ if training_args.do_eval:
     dev_labels = [float(label) for _, _, label in dev_triplets]
 
 if training_args.do_predict:
+    print('Preparing TEST data ...')
     test_query_df = read_query_file(data_args.test_query_file, )
     test_infer_data = make_inference_data(test_query_df, doc_df)
     # no qrel file for testing data
@@ -64,6 +67,7 @@ if data_args.max_train_samples is not None:
     # During Feature creation dataset samples might increase, we will select required samples again
     train_triplets = random.choices(train_triplets, k=data_args.max_train_samples)
 
+print('Creating Dataloader & Model ...')
 train_dataloader = DataLoader(train_triplets, shuffle=True, batch_size=training_args.per_device_train_batch_size)
 model = CrossEncoder(model_args.model_name_or_path, num_labels=1, max_length=data_args.max_seq_length)
 
@@ -78,23 +82,24 @@ def eval_dataset(inference_pairs):
     print(results[0]["overall"])
 
 
-def eval_demo():
-    return
-    if not training_args.save_last_checkpoint_to_drive:
-        print("dev_infer_data")
-        eval_dataset(dev_infer_data)
-        print("bm25_run")
-        eval_dataset(bm25_run)
+# def eval_demo():
+#     return
+#     if not training_args.save_last_checkpoint_to_drive:
+#         print("dev_infer_data")
+#         eval_dataset(dev_infer_data)
+#         print("bm25_run")
+#         eval_dataset(bm25_run)
 
 
 def epoch_callback(score, epoch, steps):
     print(score, epoch, steps)
-    if epoch % 5:
-        eval_demo()
+    # if epoch % 5:
+    #     eval_demo()
 
 
-eval_demo()
+# eval_demo()
 
+print('Train ...')
 model.fit(train_dataloader=train_dataloader,
           epochs=int(training_args.num_train_epochs),
           evaluator=CEBinaryAccuracyEvaluator(dev_pairs, dev_labels) if training_args.do_eval else None,
@@ -103,12 +108,18 @@ model.fit(train_dataloader=train_dataloader,
           callback=epoch_callback,
           output_path=os.path.join(training_args.output_dir, "checkpoints", "-" + str(training_args.seed)),
           optimizer_params={'lr': training_args.learning_rate},
-          show_progress_bar=False)
+          show_progress_bar=True)
 
+print('Save Model ...')
 model.save(os.path.join(training_args.output_dir, f"last-checkpoint"))
 
 if training_args.save_last_checkpoint_to_drive:
-    save_model_to_drive(training_args)
+    # save_model_to_drive(training_args)
+
+    # Save DEV Results
+    dev_infer_df = infer_relevance(model, dev_infer_data, tok_k_relevant=data_args.tok_k_relevant)
+    dev_infer_df.to_csv(os.path.join(training_args.my_output_dir, "eval_inference.tsv"), sep="\t", index=False,
+                        header=False)
 else:
     dev_infer_df = infer_relevance(model, dev_infer_data, tok_k_relevant=data_args.tok_k_relevant)
     test_infer_df = infer_relevance(model, test_infer_data, tok_k_relevant=data_args.tok_k_relevant)
