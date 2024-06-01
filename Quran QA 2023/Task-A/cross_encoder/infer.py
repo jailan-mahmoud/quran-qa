@@ -50,9 +50,11 @@ if training_args.do_eval:
     # dev_labels = [float(label) for _, _, label in dev_triplets]
 
     # Infer
+    print('Infer DEV data ...')
     dev_infer_df = infer_relevance(model, dev_infer_data, tok_k_relevant=data_args.tok_k_relevant)
 
     # Save inference results
+    print('Save DEV inference results ...')
     dev_infer_df.to_csv(os.path.join(training_args.my_output_dir, "eval_inference.tsv"), sep="\t", index=False,
                         header=False)
 
@@ -64,9 +66,11 @@ if training_args.do_predict:
     # no qrel file for testing data
 
     # Infer
+    print('Infer TEST data ...')
     test_infer_df = infer_relevance(model, test_infer_data, tok_k_relevant=data_args.tok_k_relevant)
 
     # Save inference results
+    print('Save TEST inference results ...')
     test_infer_df.to_csv(os.path.join(training_args.my_output_dir, "test_inference.tsv"), sep="\t", index=False,
                          header=False)
 
