@@ -26,6 +26,8 @@ model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
 log_level = config_logger(training_args)
 handle_seed(training_args)
+
+print('Create Output Directory')
 prepare_my_output_dirs(training_args)
 doc_df = read_docs_file(data_args.doc_file)
 
@@ -116,12 +118,13 @@ print('Save Model ...')
 model.save(os.path.join(training_args.output_dir, f"last-checkpoint"))
 
 if training_args.save_last_checkpoint_to_drive:
+    pass
     # save_model_to_drive(training_args)
 
     # Save DEV Results
-    dev_infer_df = infer_relevance(model, dev_infer_data, tok_k_relevant=data_args.tok_k_relevant)
-    dev_infer_df.to_csv(os.path.join(training_args.my_output_dir, "eval_inference.tsv"), sep="\t", index=False,
-                        header=False)
+    # dev_infer_df = infer_relevance(model, dev_infer_data, tok_k_relevant=data_args.tok_k_relevant)
+    # dev_infer_df.to_csv(os.path.join(training_args.my_output_dir, "eval_inference.tsv"), sep="\t", index=False,
+    #                     header=False)
 else:
     dev_infer_df = infer_relevance(model, dev_infer_data, tok_k_relevant=data_args.tok_k_relevant)
     test_infer_df = infer_relevance(model, test_infer_data, tok_k_relevant=data_args.tok_k_relevant)
