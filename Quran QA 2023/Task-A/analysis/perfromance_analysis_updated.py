@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     all_results_df = []
     df_qrels = read_qrels_file(args.validation_qrels_gold)
-    walk = list(os.walk(args.artifacts_path))  # "artifacts/dumps"
+    walk = list(os.walk(args.artifacts_dumps_path))  # "artifacts/dumps"
     summary_dump = {}
     ensemble_runs = defaultdict(list)
     for root, folders, files in tqdm(walk):
