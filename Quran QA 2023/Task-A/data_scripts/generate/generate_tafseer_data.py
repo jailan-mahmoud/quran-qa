@@ -32,6 +32,10 @@ query_data = pd.concat([full_data[["muyassar_q", "muyassar"]].rename(columns={"m
 qrel_df = pd.concat([full_data[["muyassar_q", "docid"]].rename(columns={"muyassar_q": "qid", }),
                      full_data[["jalalayn_q", "docid"]].rename(columns={"jalalayn_q": "qid", }), ])
 
+tafseer_data = full_data.drop('doc_text',axis=1)
+tafseer_data.to_csv(f"data/updated_tafseer_docs.tsv", sep="\t", index=False, header=False)
+
+
 qrel_df["Q0"] = "Q0"
 qrel_df["relevance"] = "1"
 qrel_df[["qid", "Q0", "docid", "relevance", ]].to_csv(f"data/tafseer-qrel.tsv", sep="\t", index=False, header=False)
