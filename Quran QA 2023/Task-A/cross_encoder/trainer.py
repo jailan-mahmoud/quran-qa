@@ -77,7 +77,6 @@ if data_args.max_train_samples is not None:
 
 print('Creating Dataloader & Model ...')
 print(f'Batch Size = {training_args.per_device_train_batch_size}')
-print(f'Batch Size = {training_args.per_device_train_batch_size}')
 train_dataloader = DataLoader(train_triplets, shuffle=True, batch_size=training_args.per_device_train_batch_size)
 model = CrossEncoder(model_args.model_name_or_path, num_labels=1, max_length=data_args.max_seq_length)
 

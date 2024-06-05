@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def infer_relevance(model, inference_df, tok_k_relevant=100):
+def infer_relevance(model, inference_df, tok_k_relevant=1000`):
     inference_examples = [[str(line["query_text"]), str(line["doc_text"]), ] for _, line in inference_df.iterrows()]
     predicted_scores = model.predict(inference_examples, show_progress_bar=False)  # apply_softmax=True, only for multi classification
 

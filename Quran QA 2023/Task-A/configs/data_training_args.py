@@ -79,7 +79,7 @@ class DataArguments:
         },
     )
     tok_k_relevant: int = field(
-        default=100,
+        default=1000,
         metadata={"help": "The total number of relevant documents to retrieve."},
     )
     metric_cutoff: int = field(
